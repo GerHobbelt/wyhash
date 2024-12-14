@@ -130,7 +130,7 @@ static inline uint64_t wyhash_seed_init(uint64_t seed) {
   return seed;
   */
 }
-static uint32_t wyhash32low_seed_init(uint32_t seed) {
+static inline uint32_t wyhash32low_seed_init(uint32_t seed) {
   // just linear search for now
   for (auto s : wyhash32low_badseeds) {
     if (s == seed) {
@@ -187,14 +187,41 @@ static inline double wy2u01(uint64_t r){ const double _wynorm=1.0/(1ull<<52); re
 //convert any 64 bit pseudo random numbers to APPROXIMATE Gaussian distribution. It can be combined with wyrand, wyhash64 or wyhash.
 static inline double wy2gau(uint64_t r){ const double _wynorm=1.0/(1ull<<20); return ((r&0x1fffff)+((r>>21)&0x1fffff)+((r>>42)&0x1fffff))*_wynorm-3.0;}
 
-#ifdef	WYTRNG
-//The wytrand true random number generator, passed BigCrush.
-static inline uint64_t wytrand(uint64_t *seed){
-	struct	timeval	t;	gettimeofday(&t,0);
-	uint64_t	teed=(((uint64_t)t.tv_sec)<<32)|t.tv_usec;
-	teed=_wymix(teed^_wyp[0],*seed^_wyp[1]);
-	*seed=_wymix(teed^_wyp[0],_wyp[2]);
-	return _wymix(*seed,*seed^_wyp[3]);
+#if defined(WYTRNG)
+#include <chrono>
+#if 0
+#include <absl/base/internal/cycleclock.h>
+static uint64_t wyticks(void) {
+	return ::absl::base_internal::UnscaledCycleClock::Now();   // unreachable as this one is a private member. :'-((
+}
+#else
+#include "plf_nanotimer.hpp"
+static uint64_t wyticks(void) {
+	uint64_t rv;
+	::plf::nanotimer t;
+	t.get_raw(rv);
+	return rv;
+}
+#endif
+
+//The wytrand pseudo-random number generator, passed BigCrush.
+
+static inline uint64_t wytrand(uint64_t &seed){
+	auto const now = std::chrono::system_clock::now();
+	std::time_t newt = std::chrono::system_clock::to_time_t(now);
+	uint64_t	teed= newt;
+	teed=_wymix(teed^_wyp[0],seed^_wyp[1]);
+	uint64_t	seed2 = wyticks();
+	teed=_wymix(teed^_wyp[0], seed2^_wyp[1]);
+	seed=_wymix(teed^_wyp[0],_wyp[2]);
+	return _wymix(seed,seed^_wyp[3]);
+}
+
+static inline uint64_t wytfastrand(uint64_t previous_value, uint64_t seed = 0) {
+	uint64_t	teed= previous_value;
+	teed=_wymix(teed^_wyp[0], seed^_wyp[1]);
+	teed=_wymix(teed^_wyp[0], _wyp[2]);
+	return _wymix(teed, teed^_wyp[3]);
 }
 #endif
 

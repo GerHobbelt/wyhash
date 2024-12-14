@@ -2,6 +2,8 @@
 #include <vector>
 #include <cstdio>
 #include <cstdlib>
+
+#define WYTRNG
 #define _wyp wy_secret
 #include "wyhash.h"
 
@@ -133,7 +135,7 @@ uint64_t rand64()
 
 inline unsigned popcount(uint64_t x)
 {
-    return __builtin_popcountll(x);
+    return wy_popcount(x);
 }
 
 struct Quality {
@@ -211,9 +213,19 @@ double test_quality(uint64_t (*hash)(const void *ptr, size_t len, uint64_t seed)
     return worst;
 }
 
+void test_random(void) {
+	uint64_t v, s;
+	v = wytrand(s);
+
+	uint64_t v2;
+	v2 = wytfastrand(v);
+	printf("RANDOM TEST TODO: %zu, %zu, %zu\n", (size_t)s, (size_t)v, (size_t)v2);
+}
 
 int main()
 {
+	test_random();
+
     if (test_quality(&Hash::hash) < 24)
         return 0;
 
