@@ -94,6 +94,73 @@ static inline uint64_t _wyr4(const uint8_t *p) { uint32_t v; memcpy(&v, p, 4); r
 static inline uint64_t _wyr4 (const uint8_t *p) {return (uint64_t)(0xff & p[3]) << 030 | (uint64_t)(0xff & p[2]) << 020 | (uint64_t)(0xff & p[1]) << 010 | (uint64_t)(0xff & p[0]); }
 static inline uint64_t wyr8 (const uint8_t *p) { return (uint64_t)(0xff & p[7]) << 070 | (uint64_t)(0xff & p[6]) << 060 | (uint64_t)(0xff & p[5]) << 050 | (uint64_t)(0xff & p[4]) << 040 | (uint64_t)(0xff & p[3]) << 030 | (uint64_t)(0xff & p[2]) << 020 | (uint64_t)(0xff & p[1]) << 010 | (uint64_t)(0xff & p[0]) << 000 ;}
 #endif
+
+#if WYHASH_CONDOM
+// must be sorted
+static const uint32_t wyhash32low_badseeds[]
+= { 0x138d5f9f, 0x1e4f8661, 0x29362732, 0x49a7ee03,
+    0x4d29ced1, 0x5ee3628c, 0x833f0eb6, 0x928fce63,
+    0x99be0ae5, 0xac470842, 0xcaf21e71, 0xfc1c4878 };
+//static const uint32_t wyhash_badseeds[] = { };
+
+# if defined __cplusplus
+// fixup bad seeds with WYHASH_CONDOM
+static inline void wyhash_seed_init(uint32_t &seed) {
+  return;
+  /*for (auto s : wyhash_badseeds) {
+    if (s == seed) {
+        seed++;
+        return;
+    }
+    if (s > seed)
+      return;
+  }*/
+}
+static inline void wyhash_seed_init(uint64_t &seed) {
+  return;
+  /*for (auto s : wyhash_badseeds) {
+    if (s & seed) {
+        seed++;
+        return;
+    }
+  }*/
+}
+static void wyhash32low_seed_init(uint32_t &seed) {
+  // just linear search for now
+  for (auto s : wyhash32low_badseeds) {
+    if (s == seed) {
+        seed++;
+        return;
+    }
+    if (s > seed)
+      return;
+  }
+}
+# else
+// check bad seeds with WYHASH_CONDOM
+static inline bool wyhash_badseed(const uint64_t seed) {
+  /*for (auto s : wyhash_badseeds) {
+    if (s & seed) {
+        return true;
+    }
+  }*/
+  return false;
+}
+static bool wyhash32low_badseed(const uint32_t seed) {
+  // just linear search for now
+  for (auto s : wyhash32low_badseeds) {
+    if (s == seed) {
+        return true;
+    }
+    if (s > seed)
+      return false;
+  }
+  return false;
+}
+# endif
+#endif // WYHASH_CONDOM
+
+
 static inline uint64_t _wyr3(const uint8_t *p, size_t k) { return (((uint64_t)p[0])<<16)|(((uint64_t)p[k>>1])<<8)|p[k-1];}
 //wyhash main function
 static inline uint64_t wyhash(const void *key, size_t len, uint64_t seed, const uint64_t *secret){
