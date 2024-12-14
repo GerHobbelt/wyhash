@@ -104,7 +104,7 @@ vector<pair<unsigned, unsigned>> generate_sequence(unsigned min, unsigned max, u
     for (size_t pos = 0; pos < sizeof(buffer); ) {
         unsigned len = min + rand() % (max - min);
         res.emplace_back(pos, len);
-        pos = (pos + len + align) & ~align;
+        pos = (pos + len + align) & ~(size_t)align;
     }
     res.back().second = sizeof(buffer) - res.back().first;
     return res;
