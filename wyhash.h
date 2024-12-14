@@ -27,6 +27,9 @@
 //includes
 #include <stdint.h>
 #include <string.h>
+#if !defined(_WIN32)
+#include <sys/time.h>
+#endif
 #if defined(_MSC_VER) && defined(_M_X64)
   #include <intrin.h>
   #pragma intrinsic(_umul128)
@@ -157,7 +160,6 @@ static inline double wy2u01(uint64_t r){ const double _wynorm=1.0/(1ull<<52); re
 static inline double wy2gau(uint64_t r){ const double _wynorm=1.0/(1ull<<20); return ((r&0x1fffff)+((r>>21)&0x1fffff)+((r>>42)&0x1fffff))*_wynorm-3.0;}
 
 #ifdef	WYTRNG
-#include <sys/time.h>
 //The wytrand true random number generator, passed BigCrush.
 static inline uint64_t wytrand(uint64_t *seed){
 	struct	timeval	t;	gettimeofday(&t,0);

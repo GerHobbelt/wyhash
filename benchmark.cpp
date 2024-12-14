@@ -1,4 +1,3 @@
-#include <sys/time.h>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -6,6 +5,9 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#if !defined(_WIN32)
+#include <sys/time.h>
+#endif
 #ifndef XXH3
 #include "wyhash.h"
 #else
@@ -63,7 +65,7 @@ uint64_t bench_hash(const char *name)
     return dummy;
 }
 
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
     string file_name="/usr/share/dict/words", help_s="-h", s;
     if(argc>1)
