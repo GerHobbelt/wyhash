@@ -5,9 +5,9 @@
 #include <string>
 #include <cstring>
 #include <vector>
-#if !defined(_WIN32)
-#include <sys/time.h>
-#endif
+
+#include "plf_nanotimer.hpp"
+
 #ifndef XXH3
 #include "wyhash.h"
 #else
@@ -34,7 +34,7 @@ uint64_t bench_hash(const char *name)
 {
     Hasher h;
     string s;
-    timeval beg, end;
+    plf::nanotimer clk;
     uint64_t dummy=0;
     const uint64_t N=v.size(), R=0x1000;
 
@@ -42,26 +42,26 @@ uint64_t bench_hash(const char *name)
     cerr.setf(ios::fixed);
     cerr<<'|'<<name<<(strlen(name)<8?"\t\t|":"\t|");
 
-    gettimeofday(&beg,NULL);
+		clk.start();
     for(size_t r=0; r<R; r++)
         for(size_t i=0; i<N; i++)
             dummy+=h(v[i],r);
-    gettimeofday(&end,NULL);
-    cerr<<1e-6*R*N/(end.tv_sec-beg.tv_sec+1e-6*(end.tv_usec-beg.tv_usec))<<"\t\t|";
+		double td = clk.get_elapsed_us();
+    cerr<<1e-6*R*N/td<<"\t\t|";
 
     s.resize(1<<8);
-    gettimeofday(&beg,NULL);
-    for(size_t r=0; r<(R<<14); r++)
+		clk.start();
+		for(size_t r=0; r<(R<<14); r++)
         dummy+=h(s,r);
-    gettimeofday(&end,NULL);
-    cerr<<1e-9*(R<<14)*s.size()/(end.tv_sec-beg.tv_sec+1e-6*(end.tv_usec-beg.tv_usec))<<"\t\t|";
+		td = clk.get_elapsed_us();
+    cerr<<1e-9*(R<<14)*s.size()/td<<"\t\t|";
 
     s.resize(1<<16);
-    gettimeofday(&beg,NULL);
-    for(size_t r=0; r<(R<<6); r++)
+		clk.start();
+		for(size_t r=0; r<(R<<6); r++)
         dummy+=h(s,r);
-    gettimeofday(&end,NULL);
-    cerr<<1e-9*(R<<6)*s.size()/(end.tv_sec-beg.tv_sec+1e-6*(end.tv_usec-beg.tv_usec))<<"\t\t|\n";
+		td = clk.get_elapsed_us();
+    cerr<<1e-9*(R<<6)*s.size()/td<<"\t\t|\n";
     return dummy;
 }
 
